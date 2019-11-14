@@ -1,7 +1,9 @@
-FROM ruby:2.6.3
+FROM golang:1.12-alpine
 
-WORKDIR /app
+WORKDIR /go/src/github.com/broothie/battlesnake
 COPY . .
-RUN bundle install --system --without development
 
-CMD ["bin/puma", "-C", "puma.rb"]
+RUN apk add --update ca-certificates
+RUN go build
+
+CMD ./battlesnake
