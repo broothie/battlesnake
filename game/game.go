@@ -100,13 +100,31 @@ func (s *State) SnakeFreeMoves(moves ...string) []string {
 }
 
 func (s *State) NonPocketMoves(moves ...string) []string {
-	sizes := s.Board.grid.FindCellSectorSizes()
-	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
-		sectorSize := sizes[s.Board.grid.CellAt(s.You.Head().Translate(move))]
-		youSize := s.You.Length()
+	sectorSizes := s.Board.grid.FindCellSectorSizes()
+
+	youSize := s.You.Length()
+	moveSizes := make(map[string]int)
+	for _, move := range moves {
+		sectorSize := sectorSizes[s.Board.grid.CellAt(s.You.Head().Translate(move))]
 		s.logger.Printf("move: %s, pocketSize: %d, youSize: %d, ok: %v\n", move, sectorSize, youSize, sectorSize > youSize)
-		return sectorSize > youSize
+		moveSizes[move] = sectorSize
+	}
+
+	// If any moves are fittable, return them
+	fittableMoves := stringSelect(moves, func(_ int, move string) bool {
+		return moveSizes[move] >= youSize
 	})
+	if len(fittableMoves) > 0 {
+		return fittableMoves
+	}
+
+	// If no moves fittable, choose the biggest pocket
+	s.logger.Println("choosing biggest pocket")
+	sort.Slice(moves, func(i, j int) bool {
+		return moveSizes[moves[i]] > moveSizes[moves[j]]
+	})
+
+	return moves[0:1]
 }
 
 func (s *State) NonRiskyMoves(moves ...string) []string {
@@ -118,6 +136,7 @@ func (s *State) NonRiskyMoves(moves ...string) []string {
 func (s *State) TowardFoodMoves(moves ...string) []string {
 	// Bail if no food
 	if len(s.Board.Food) == 0 {
+		s.logger.Print("no food on board")
 		return moves
 	}
 
@@ -130,6 +149,7 @@ func (s *State) TowardFoodMoves(moves ...string) []string {
 
 	// Bail if biggest snake by 2 and health is greater than 50%
 	if s.You.Length() > max+2 && s.You.Health > 50 {
+		s.logger.Print("biggest snake and plenty healthy")
 		return moves
 	}
 
