@@ -116,32 +116,45 @@ func (s *State) NonRiskyMoves(moves ...string) []string {
 }
 
 func (s *State) TowardFoodMoves(moves ...string) []string {
-	if len(s.Board.Food) != 0 {
-		head := s.You.Head()
-
-		// Sort food by closeness
-		food := s.Board.Food[:]
-		sort.Slice(food, func(i, j int) bool {
-			return head.Distance(food[i].Position) < head.Distance(food[j].Position)
-		})
-
-		// For each food, determine if winnable
-		bestFood := food[0]
-		for _, foodItem := range food {
-			if foodItem.ClosestSnake().IsYou() {
-				bestFood = foodItem
-				break
-			}
-		}
-
-		// Figure best move out
-		currentDistance := head.Distance(bestFood.Position)
-		return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
-			return head.Translate(move).Distance(bestFood.Position) < currentDistance
-		})
+	// Bail if no food
+	if len(s.Board.Food) == 0 {
+		return moves
 	}
 
-	return moves
+	max := 0
+	for _, snake := range s.Board.Snakes {
+		if snake.Length() > max {
+			max = snake.Length()
+		}
+	}
+
+	// Bail if biggest snake by 2 and health is greater than 50%
+	if s.You.Length() > max+2 && s.You.Health > 50 {
+		return moves
+	}
+
+	head := s.You.Head()
+
+	// Sort food by closeness
+	food := s.Board.Food[:]
+	sort.Slice(food, func(i, j int) bool {
+		return head.Distance(food[i].Position) < head.Distance(food[j].Position)
+	})
+
+	// For each food, determine if winnable
+	bestFood := food[0]
+	for _, foodItem := range food {
+		if foodItem.ClosestSnake().IsYou() {
+			bestFood = foodItem
+			break
+		}
+	}
+
+	// Figure best move out
+	currentDistance := head.Distance(bestFood.Position)
+	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
+		return head.Translate(move).Distance(bestFood.Position) < currentDistance
+	})
 }
 
 func stringSample(strings ...string) string {

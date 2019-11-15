@@ -72,7 +72,7 @@ func reqLogger(handler http.Handler) http.HandlerFunc {
 		handler.ServeHTTP(recorder, r)
 
 		since := time.Since(before)
-		logger.Printf("%s %s | %d %s %d | %v \n", r.Method, r.URL.Path, recorder.Code, http.StatusText(recorder.Code), recorder.Body.Len(), since)
+		logger.Printf("%s %s %dB | %d %s %dB | %v \n", r.Method, r.URL.Path, r.ContentLength, recorder.Code, http.StatusText(recorder.Code), recorder.Body.Len(), since)
 
 		for key, values := range recorder.Header() {
 			for _, value := range values {
