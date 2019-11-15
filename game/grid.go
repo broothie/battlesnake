@@ -65,13 +65,17 @@ type Cell struct {
 	segment *Segment
 }
 
-func (c *Cell) IsFreeOfSnakes() bool {
+func (c *Cell) IsSnakeFree() bool {
 	return c.segment == nil
+}
+
+func (c *Cell) HasSnake() bool {
+	return !c.IsSnakeFree()
 }
 
 func (c *Cell) IsRisky(you *Snake) bool {
 	for _, neighbor := range c.Neighbors() {
-		if neighbor.segment != nil && !neighbor.segment.snake.IsYou() && neighbor.segment.IsHead() && neighbor.segment.snake.Length() >= you.Length() {
+		if neighbor.HasSnake() && !neighbor.segment.snake.IsYou() && neighbor.segment.IsHead() && neighbor.segment.snake.Length() >= you.Length() {
 			return true
 		}
 	}

@@ -60,6 +60,13 @@ func (s *State) NextMove() string {
 	}
 	s.logger.Printf("%"+padding+"v: %v\n", "snake free", moves)
 
+	// Non-pocket moves
+	nonPocketMoves := s.NonPocketMoves(moves...)
+	if len(nonPocketMoves) != 0 {
+		moves = nonPocketMoves
+	}
+	s.logger.Printf("%"+padding+"v: %v\n", "non pocket", moves)
+
 	// Non-risky moves
 	nonRiskyMoves := s.NonRiskyMoves(moves...)
 	if len(nonRiskyMoves) != 0 {
@@ -88,7 +95,14 @@ func (s *State) ValidMoves(moves ...string) []string {
 
 func (s *State) SnakeFreeMoves(moves ...string) []string {
 	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
-		return s.Board.grid.CellAt(s.You.Head().Translate(move)).IsFreeOfSnakes()
+		return s.Board.grid.CellAt(s.You.Head().Translate(move)).IsSnakeFree()
+	})
+}
+
+func (s *State) NonPocketMoves(moves ...string) []string {
+	sizes := s.Board.grid.FindCellSectorSizes()
+	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
+		return sizes[s.Board.grid.CellAt(s.You.Head().Translate(move))] > s.You.Length()
 	})
 }
 
@@ -126,19 +140,6 @@ func (s *State) TowardFoodMoves(moves ...string) []string {
 
 	return moves
 }
-
-type cellSet map[*Cell]struct{}
-
-type cellSetMap map[*Cell]cellSet
-
-//func findComponents(grid *Grid) cellSetMap {
-//	setMap := make(cellSetMap)
-//
-//}
-//
-//func explore(cell *Cell, setMap cellSetMap) []*Cell {
-//
-//}
 
 func stringSample(strings ...string) string {
 	return strings[rand.Intn(len(strings))]

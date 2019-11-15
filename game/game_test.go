@@ -189,3 +189,25 @@ func TestState_TowardFoodMoves(t *testing.T) {
 		assert.ElementsMatch(t, onlyMoves(Up, Left), state.TowardFoodMoves(Moves...))
 	})
 }
+
+func TestState_NonPocketMoves(t *testing.T) {
+	state := buildState(
+		dimensions(10, 10),
+		you(2, 0),
+		you(2, 1),
+		you(2, 2),
+		you(1, 2),
+		you(0, 2),
+		segment("1", 6, 0),
+		segment("1", 6, 1),
+		segment("1", 6, 2),
+		segment("1", 6, 3),
+		segment("1", 6, 4),
+		segment("1", 7, 4),
+		segment("1", 8, 4),
+		segment("1", 9, 4),
+	)
+
+	assert.ElementsMatch(t, onlyMoves(Left, Right), state.SnakeFreeMoves(Moves...))
+	assert.ElementsMatch(t, onlyMoves(Right), state.NonPocketMoves(Moves...))
+}
