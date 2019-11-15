@@ -1,5 +1,10 @@
 package game
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Grid struct {
 	board *Board
 	rows  [][]*Cell
@@ -13,6 +18,46 @@ func (g *Grid) CellAt(position Position) *Cell {
 	return g.rows[position.Y][position.X]
 }
 
+func (g *Grid) String() string {
+	var builder strings.Builder
+
+	builder.WriteString("\n")
+	builder.WriteString("   ")
+	for i := 0; i < g.board.Width; i++ {
+		builder.WriteString(fmt.Sprintf("%-3d", i))
+	}
+	builder.WriteString("\n")
+
+	for i, row := range g.rows {
+		builder.WriteString(fmt.Sprintf("%-2d ", i))
+
+		for _, cell := range row {
+			if cell.food != nil {
+				builder.WriteString(fmt.Sprintf("%-3s", "FF"))
+				continue
+			}
+
+			if cell.segment != nil {
+				snakeChar := "S"
+				if cell.segment.IsHead() {
+					snakeChar = "H"
+				}
+
+				idChar := string(cell.segment.snake.ID[0])
+				builder.WriteString(fmt.Sprintf("%-3s", snakeChar+idChar))
+				continue
+			}
+
+			builder.WriteString("-- ")
+		}
+
+		builder.WriteString("\n")
+	}
+
+	builder.WriteString("\n")
+	return builder.String()
+}
+
 type Cell struct {
 	Position
 	grid    *Grid
@@ -24,9 +69,9 @@ func (c *Cell) IsFreeOfSnakes() bool {
 	return c.segment == nil
 }
 
-func (c *Cell) IsRisky() bool {
+func (c *Cell) IsRisky(you *Snake) bool {
 	for _, neighbor := range c.Neighbors() {
-		if neighbor.segment != nil && neighbor.segment.IsHead() {
+		if neighbor.segment != nil && !neighbor.segment.snake.IsYou() && neighbor.segment.IsHead() && neighbor.segment.snake.Length() >= you.Length() {
 			return true
 		}
 	}

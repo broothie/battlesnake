@@ -16,6 +16,8 @@ const (
 	Down  = "down"
 	Left  = "left"
 	Right = "right"
+
+	padding = "10"
 )
 
 var Moves = []string{Up, Down, Left, Right}
@@ -42,37 +44,64 @@ func (s *State) Init(logger *log.Logger) {
 func (s *State) NextMove() string {
 	head := s.You.Head()
 	moves := Moves[:]
-	s.logger.Println("start: ", moves)
+	s.logger.Printf("%"+padding+"v: %v\n", "start", moves)
 
 	// Moves on board
-	validMoves := stringSelect(moves, func(_ int, move string) bool {
-		return s.Board.grid.CellAt(head.Translate(move)) != nil
-	})
+	validMoves := s.ValidMoves(moves...)
 	if len(validMoves) != 0 {
 		moves = validMoves
 	}
-	s.logger.Println("valid: ", moves)
+	s.logger.Printf("%"+padding+"v: %v\n", "valid", moves)
 
 	// Moves without snakes
-	freeOfSnakesMoves := stringSelect(moves, func(_ int, move string) bool {
-		return s.Board.grid.CellAt(head.Translate(move)).IsFreeOfSnakes()
-	})
+	freeOfSnakesMoves := s.SnakeFreeMoves(moves...)
 	if len(freeOfSnakesMoves) != 0 {
 		moves = freeOfSnakesMoves
 	}
-	s.logger.Println("snkfr: ", moves)
+	s.logger.Printf("%"+padding+"v: %v\n", "snake free", moves)
 
 	// Non-risky moves
-	nonRiskyMoves := stringSelect(moves, func(_ int, move string) bool {
-		return !s.Board.grid.CellAt(head.Translate(move)).IsRisky()
-	})
+	nonRiskyMoves := s.NonRiskyMoves(moves...)
 	if len(nonRiskyMoves) != 0 {
 		moves = nonRiskyMoves
 	}
-	s.logger.Println("nrsky: ", moves)
+	s.logger.Printf("%"+padding+"v: %v\n", "not risky", moves)
 
 	// Moves closer to food
+	foodMoves := s.TowardFoodMoves(moves...)
+	if len(foodMoves) != 0 {
+		moves = foodMoves
+	}
+	s.logger.Printf("%"+padding+"v: %v\n", "food", moves)
+
+	s.logger.Printf("%"+padding+"v: %v\n", "final", moves)
+	move := stringSample(moves...)
+	s.logger.Printf("turn: %d, health: %d, x: %d, y: %d, move: %s\n", s.Turn, s.You.Health, head.X, head.Y, move)
+	return move
+}
+
+func (s *State) ValidMoves(moves ...string) []string {
+	return stringSelect(moves, func(_ int, move string) bool {
+		return s.Board.grid.CellAt(s.You.Head().Translate(move)) != nil
+	})
+}
+
+func (s *State) SnakeFreeMoves(moves ...string) []string {
+	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
+		return s.Board.grid.CellAt(s.You.Head().Translate(move)).IsFreeOfSnakes()
+	})
+}
+
+func (s *State) NonRiskyMoves(moves ...string) []string {
+	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
+		return !s.Board.grid.CellAt(s.You.Head().Translate(move)).IsRisky(s.You)
+	})
+}
+
+func (s *State) TowardFoodMoves(moves ...string) []string {
 	if len(s.Board.Food) != 0 {
+		head := s.You.Head()
+
 		// Sort food by closeness
 		food := s.Board.Food[:]
 		sort.Slice(food, func(i, j int) bool {
@@ -90,20 +119,26 @@ func (s *State) NextMove() string {
 
 		// Figure best move out
 		currentDistance := head.Distance(bestFood.Position)
-		foodMoves := stringSelect(moves, func(_ int, move string) bool {
+		return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
 			return head.Translate(move).Distance(bestFood.Position) < currentDistance
 		})
-		if len(foodMoves) != 0 {
-			moves = foodMoves
-		}
-		s.logger.Println("4food: ", moves)
 	}
 
-	s.logger.Println("final: ", moves)
-	move := stringSample(moves...)
-	s.logger.Printf("turn: %d, health: %d, x: %d, y: %d, move: %s\n", s.Turn, s.You.Health, head.X, head.Y, move)
-	return move
+	return moves
 }
+
+type cellSet map[*Cell]struct{}
+
+type cellSetMap map[*Cell]cellSet
+
+//func findComponents(grid *Grid) cellSetMap {
+//	setMap := make(cellSetMap)
+//
+//}
+//
+//func explore(cell *Cell, setMap cellSetMap) []*Cell {
+//
+//}
 
 func stringSample(strings ...string) string {
 	return strings[rand.Intn(len(strings))]

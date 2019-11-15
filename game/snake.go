@@ -29,16 +29,6 @@ func (s *Snake) Head() Segment {
 	return s.Body[0]
 }
 
-func (s *Snake) OnBody(p Position) bool {
-	for _, segment := range s.Body {
-		if segment.Position.Equals(p) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (s *Snake) IsHeadAt(p Position) bool {
 	return s.Head().Position.Equals(p)
 }
@@ -49,17 +39,17 @@ func (s *Snake) IsYou() bool {
 
 type Segment struct {
 	Position
-	Snake *Snake
+	snake *Snake
 }
 
 func (s *Segment) init(snake *Snake) {
-	s.Snake = snake
+	s.snake = snake
 }
 
 func (s *Segment) Equals(other Segment) bool {
-	return s.Snake.Equals(other.Snake) && s.Position.Equals(other.Position)
+	return s.snake.Equals(other.snake) && s.Position.Equals(other.Position)
 }
 
 func (s *Segment) IsHead() bool {
-	return s.Equals(s.Snake.Head())
+	return s.Equals(s.snake.Head())
 }
