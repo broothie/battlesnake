@@ -102,7 +102,10 @@ func (s *State) SnakeFreeMoves(moves ...string) []string {
 func (s *State) NonPocketMoves(moves ...string) []string {
 	sizes := s.Board.grid.FindCellSectorSizes()
 	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
-		return sizes[s.Board.grid.CellAt(s.You.Head().Translate(move))] > s.You.Length()
+		sectorSize := sizes[s.Board.grid.CellAt(s.You.Head().Translate(move))]
+		youSize := s.You.Length()
+		s.logger.Printf("move: %s, pocketSize: %d, youSize: %d, ok: %v\n", move, sectorSize, youSize, sectorSize > youSize)
+		return sectorSize > youSize
 	})
 }
 
