@@ -66,7 +66,7 @@ type Cell struct {
 }
 
 func (c *Cell) WillBeSnakeFree() bool {
-	return c.segment == nil || (c.segment.IsTail() && !c.segment.snake.IsEating())
+	return c.segment == nil || (c.segment.IsTail() && !c.segment.snake.IsEating() && !c.segment.snake.BabyYou())
 }
 
 func (c *Cell) HasSnake() bool {

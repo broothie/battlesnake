@@ -45,6 +45,10 @@ func (s *Snake) IsEating() bool {
 	return s.board.grid.CellAt(s.Head().Position).food != nil
 }
 
+func (s *Snake) BabyYou() bool {
+	return s.IsYou() && s.Length() == 2
+}
+
 type Segment struct {
 	Position
 	snake *Snake
