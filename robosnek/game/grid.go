@@ -65,12 +65,12 @@ type Cell struct {
 	segment *Segment
 }
 
-func (c *Cell) WillBeSnakeFree() bool {
-	return c.segment == nil || (c.segment.IsTail() && !c.segment.snake.IsEating() && !c.segment.snake.BabyYou())
+func (c *Cell) IsSnakeFree() bool {
+	return c.segment == nil
 }
 
 func (c *Cell) HasSnake() bool {
-	return !c.WillBeSnakeFree()
+	return !c.IsSnakeFree()
 }
 
 func (c *Cell) IsRisky(you *Snake) bool {

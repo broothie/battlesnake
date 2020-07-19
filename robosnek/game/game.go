@@ -95,7 +95,7 @@ func (s *State) ValidMoves(moves ...string) []string {
 
 func (s *State) SnakeFreeMoves(moves ...string) []string {
 	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
-		return s.Board.grid.CellAt(s.You.Head().Translate(move)).WillBeSnakeFree()
+		return s.Board.grid.CellAt(s.You.Head().Translate(move)).IsSnakeFree()
 	})
 }
 
@@ -142,18 +142,18 @@ func (s *State) TowardFoodMoves(moves ...string) []string {
 		return moves
 	}
 
-	max := 0
+	maxLength := 0
 	for _, snake := range s.Board.Snakes {
-		if snake.Length() > max {
-			max = snake.Length()
+		if snake.Length() > maxLength {
+			maxLength = snake.Length()
 		}
 	}
 
-	bigEnough := s.You.Length() > max+2
+	bigEnough := s.You.Length() > maxLength+2
 	onlySnake := len(s.Board.Snakes) == 1 && s.Board.Snakes[0].IsYou()
 	if bigEnough || onlySnake {
 		// Bail if health is greater than 20%
-		if s.You.Health > 20 {
+		if s.You.Health > 15 {
 			s.logger.Printf("healthy snake; health: %d", s.You.Health)
 			return moves
 		}
