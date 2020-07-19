@@ -13,9 +13,9 @@ func (p Position) Translate(move string) Position {
 	newP := p
 	switch move {
 	case Up:
-		newP.Y -= 1
-	case Down:
 		newP.Y += 1
+	case Down:
+		newP.Y -= 1
 	case Left:
 		newP.X -= 1
 	case Right:

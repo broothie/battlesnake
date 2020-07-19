@@ -29,12 +29,20 @@ func (s *Snake) Head() Segment {
 	return s.Body[0]
 }
 
+func (s *Snake) Tail() Segment {
+	return s.Body[len(s.Body)-1]
+}
+
 func (s *Snake) IsHeadAt(p Position) bool {
 	return s.Head().Position.Equals(p)
 }
 
 func (s *Snake) IsYou() bool {
 	return s.Equals(s.board.state.You)
+}
+
+func (s *Snake) IsEating() bool {
+	return s.board.grid.CellAt(s.Head().Position).food != nil
 }
 
 type Segment struct {
@@ -52,4 +60,8 @@ func (s *Segment) Equals(other Segment) bool {
 
 func (s *Segment) IsHead() bool {
 	return s.Equals(s.snake.Head())
+}
+
+func (s *Segment) IsTail() bool {
+	return s.Equals(s.snake.Tail())
 }

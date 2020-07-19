@@ -1,3 +1,5 @@
 gin-bin
 Makefile
+Spudfile
+*.gcloud-key.json
 *_test.go

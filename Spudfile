@@ -1,0 +1,12 @@
+
+robo do
+  invoke 'build', 'robosnek'
+end
+
+turtle do
+  invoke 'build', 'turtlesnek'
+end
+
+build do |snake|
+  sh "docker build -t #{snake} -f #{snake}.Dockerfile ."
+end

@@ -95,7 +95,7 @@ func (s *State) ValidMoves(moves ...string) []string {
 
 func (s *State) SnakeFreeMoves(moves ...string) []string {
 	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
-		return s.Board.grid.CellAt(s.You.Head().Translate(move)).IsSnakeFree()
+		return s.Board.grid.CellAt(s.You.Head().Translate(move)).WillBeSnakeFree()
 	})
 }
 
@@ -134,6 +134,8 @@ func (s *State) NonRiskyMoves(moves ...string) []string {
 }
 
 func (s *State) TowardFoodMoves(moves ...string) []string {
+	head := s.You.Head()
+
 	// Bail if no food
 	if len(s.Board.Food) == 0 {
 		s.logger.Print("no food on board")
@@ -147,13 +149,15 @@ func (s *State) TowardFoodMoves(moves ...string) []string {
 		}
 	}
 
-	// Bail if biggest snake by 2 and health is greater than 50%
-	if s.You.Length() > max+2 && s.You.Health > 50 {
-		s.logger.Print("biggest snake and plenty healthy")
-		return moves
+	bigEnough := s.You.Length() > max+2
+	onlySnake := len(s.Board.Snakes) == 1 && s.Board.Snakes[0].IsYou()
+	if bigEnough || onlySnake {
+		// Bail if health is greater than 20%
+		if s.You.Health > 20 {
+			s.logger.Printf("healthy snake; health: %d", s.You.Health)
+			return moves
+		}
 	}
-
-	head := s.You.Head()
 
 	// Sort food by closeness
 	food := s.Board.Food[:]
