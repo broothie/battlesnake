@@ -135,6 +135,7 @@ func main() {
 
 		logger.Println("iframe_url", data["iframe_url"])
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		enc := json.NewEncoder(w)
 		enc.SetEscapeHTML(false)
 		if err := enc.Encode(data); err != nil {
