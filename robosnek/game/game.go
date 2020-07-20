@@ -47,39 +47,29 @@ func (s *State) NextMove() string {
 	s.logger.Printf("%"+padding+"v: %v\n", "start", moves)
 
 	// Moves on board
-	validMoves := s.ValidMoves(moves...)
-	if len(validMoves) != 0 {
-		moves = validMoves
-	}
+	moves = s.ValidMoves(moves...)
 	s.logger.Printf("%"+padding+"v: %v\n", "valid", moves)
 
 	// Moves without snakes
-	freeOfSnakesMoves := s.SnakeFreeMoves(moves...)
-	if len(freeOfSnakesMoves) != 0 {
-		moves = freeOfSnakesMoves
-	}
+	moves = s.SnakeFreeMoves(moves...)
 	s.logger.Printf("%"+padding+"v: %v\n", "snake free", moves)
 
 	// Non-pocket moves
-	nonPocketMoves := s.NonPocketMoves(moves...)
-	if len(nonPocketMoves) != 0 {
-		moves = nonPocketMoves
-	}
+	moves = s.NonPocketMoves(moves...)
 	s.logger.Printf("%"+padding+"v: %v\n", "non pocket", moves)
 
 	// Non-risky moves
-	nonRiskyMoves := s.NonRiskyMoves(moves...)
-	if len(nonRiskyMoves) != 0 {
-		moves = nonRiskyMoves
-	}
+	moves = s.NonRiskyMoves(moves...)
 	s.logger.Printf("%"+padding+"v: %v\n", "not risky", moves)
 
 	// Moves closer to food
-	foodMoves := s.TowardFoodMoves(moves...)
-	if len(foodMoves) != 0 {
-		moves = foodMoves
-	}
+	moves = s.TowardFoodMoves(moves...)
 	s.logger.Printf("%"+padding+"v: %v\n", "food", moves)
+
+	if len(moves) == 0 {
+		moves = s.TailMoves()
+	}
+	s.logger.Printf("%"+padding+"v: %v\n", "tail", moves)
 
 	s.logger.Printf("%"+padding+"v: %v\n", "final", moves)
 	move := stringSample(moves...)
@@ -94,7 +84,7 @@ func (s *State) ValidMoves(moves ...string) []string {
 }
 
 func (s *State) SnakeFreeMoves(moves ...string) []string {
-	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
+	return stringSelect(moves, func(_ int, move string) bool {
 		return s.Board.grid.CellAt(s.You.Head().Translate(move)).IsSnakeFree()
 	})
 }
@@ -124,12 +114,17 @@ func (s *State) NonPocketMoves(moves ...string) []string {
 		return moveSizes[moves[i]] > moveSizes[moves[j]]
 	})
 
+	if len(moves) == 0 {
+		return nil
+	}
+
 	return moves[0:1]
 }
 
 func (s *State) NonRiskyMoves(moves ...string) []string {
-	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
-		return !s.Board.grid.CellAt(s.You.Head().Translate(move)).IsRisky(s.You)
+	head := s.You.Head()
+	return stringSelect(moves, func(_ int, move string) bool {
+		return !s.Board.grid.CellAt(head.Translate(move)).IsRisky(s.You)
 	})
 }
 
@@ -176,8 +171,16 @@ func (s *State) TowardFoodMoves(moves ...string) []string {
 
 	// Figure best move out
 	currentDistance := head.Distance(bestFood.Position)
-	return stringSelect(s.ValidMoves(moves...), func(_ int, move string) bool {
+	return stringSelect(moves, func(_ int, move string) bool {
 		return head.Translate(move).Distance(bestFood.Position) < currentDistance
+	})
+}
+
+func (s *State) TailMoves() []string {
+	head := s.You.Head()
+	return stringSelect(s.ValidMoves(Moves...), func(_ int, move string) bool {
+		segment := s.Board.grid.CellAt(head.Translate(move)).segment
+		return segment != nil && segment.IsTail()
 	})
 }
 

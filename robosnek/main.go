@@ -21,7 +21,7 @@ var (
 	start []byte
 	games *firestore.CollectionRef
 
-	logger = log.New(os.Stdout, "[battlesnake] ", log.LstdFlags)
+	logger = log.New(os.Stdout, "[robosnek] ", log.LstdFlags)
 
 	snakeConfig = map[string]string{
 		"apiversion": "1",
