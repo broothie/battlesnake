@@ -10,3 +10,7 @@ end
 build do |snake|
   sh "docker build -t #{snake} -f #{snake}.Dockerfile ."
 end
+
+serve do |snake|
+  sh "gin -i -d #{snake} -a 8080"
+end

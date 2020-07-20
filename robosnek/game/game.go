@@ -55,23 +55,39 @@ func (s *State) NextMove() string {
 	s.logger.Printf("%"+padding+"v: %v\n", "snake free", moves)
 
 	// Non-pocket moves
-	moves = s.NonPocketMoves(moves...)
+	nonPocketMoves := s.NonPocketMoves(moves...)
+	if len(nonPocketMoves) != 0 {
+		moves = nonPocketMoves
+	}
 	s.logger.Printf("%"+padding+"v: %v\n", "non pocket", moves)
 
 	// Non-risky moves
-	moves = s.NonRiskyMoves(moves...)
+	nonRiskyMoves := s.NonRiskyMoves(moves...)
+	if len(nonRiskyMoves) != 0 {
+		moves = nonRiskyMoves
+	}
 	s.logger.Printf("%"+padding+"v: %v\n", "not risky", moves)
 
 	// Moves closer to food
-	moves = s.TowardFoodMoves(moves...)
+	towardFoodMoves := s.TowardFoodMoves(moves...)
+	if len(towardFoodMoves) != 0 {
+		moves = towardFoodMoves
+	}
 	s.logger.Printf("%"+padding+"v: %v\n", "food", moves)
 
+	// Desperate tail moves
 	if len(moves) == 0 {
 		moves = s.TailMoves()
 	}
 	s.logger.Printf("%"+padding+"v: %v\n", "tail", moves)
 
 	s.logger.Printf("%"+padding+"v: %v\n", "final", moves)
+
+	// Nothing left, pick randomly
+	if len(moves) == 0 {
+		moves = Moves
+	}
+
 	move := stringSample(moves...)
 	s.logger.Printf("turn: %d, health: %d, x: %d, y: %d, move: %s\n", s.Turn, s.You.Health, head.X, head.Y, move)
 	return move
